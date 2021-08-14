@@ -1,23 +1,68 @@
-import logo from './logo.svg';
+
 import './App.css';
 
+import firebase from "firebase/app";
+import "firebase/auth";
+import firebaseConfig from './firebase.config';
+import { useState } from 'react';
+
+firebase.initializeApp(firebaseConfig);
+
 function App() {
+
+  const [display, setDisplay] = useState({
+    isSignedIn: false,
+    name: '',
+    email: ''
+  })
+
+  const provider = new firebase.auth.GoogleAuthProvider();
+
+  const handleSignedInBtn = () => {
+      firebase.auth().signInWithPopup(provider)
+      .then((res) => {
+        const {displayName, email} = res.user;
+        const isSignedIn ={
+          isSignedIn: true,
+          name: displayName,
+          email: email
+        }
+        setDisplay(isSignedIn)
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err.message);
+      })
+  }
+
+  const handleSignedOutBtn = () => {
+      firebase.auth().signOut() 
+      .then(() => {
+            const userSignedOut = {
+              isSignedIn: false,
+              name: '',
+              email: ''
+            }
+            setDisplay(userSignedOut)
+      })
+      .catch((err) => {
+        console.log(err.message);
+      })
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {
+        display.isSignedIn && <div>
+          <h3>Welcome {(display.name).toUpperCase()}</h3>
+          <p>Email: {display.email}</p>
+        </div>
+      }
+
+      {
+        display.isSignedIn ? <button onClick={handleSignedOutBtn}>Sign Out</button> 
+        : <button onClick={handleSignedInBtn}>Sign In</button> 
+      }
     </div>
   );
 }
